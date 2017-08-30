@@ -11,6 +11,12 @@ public:
     static void end();
     static uint32_t readDeviceSignature();
 
+private:
+    static void tpiEnable();
+    static void tpiDisable();
+
+    static bool enterProgrammingMode();
+    static bool exitProgrammingMode();
 };
 
 extern TPIClass TPI;
