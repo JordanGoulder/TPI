@@ -5,14 +5,14 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-TPI                         KEYWORD1
+TPI			KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-begin                       KEYWORD2
-end                         KEYWORD2
-readDeviceSignature         KEYWORD2
+begin			KEYWORD2
+end			KEYWORD2
+readDeviceSignature	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
