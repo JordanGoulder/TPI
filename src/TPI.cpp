@@ -4,12 +4,12 @@
 bool TPIClass::begin()
 {
     enableTpiInterface();
-    return enterProgrammingMode();
+    return enterNvmProgrammingMode();
 }
 
 void TPIClass::end()
 {
-    exitProgrammingMode();
+    exitNvmProgrammingMode();
     disableTpiInterface();
 }
 
@@ -48,12 +48,12 @@ void TPIClass::disableTpiInterface()
     pinMode(SCK, INPUT);
 }
 
-bool TPIClass::enterProgrammingMode()
+bool TPIClass::enterNvmProgrammingMode()
 {
-    tpiSKEY();
+    skey();
 
     int count = 0;
-    while((tpiSLDCS(TPISR) & _BV(NVMEN)) == 0) {
+    while((sldcs(TPISR) & _BV(NVMEN)) == 0) {
         if (++count > 100) {
             break;
         }
@@ -62,12 +62,12 @@ bool TPIClass::enterProgrammingMode()
     return (count > 100);
 }
 
-bool TPIClass::exitProgrammingMode()
+void TPIClass::exitNvmProgrammingMode()
 {
-    tpiSSTCS(TPISR, _BV(NVMEN));
+    sstcs(TPISR, _BV(NVMEN));
 
     int count = 0;
-    while((tpiSLDCS(TPISR) & _BV(NVMEN)) == 0) {
+    while((sldcs(TPISR) & _BV(NVMEN)) == 0) {
         if (++count > 100) {
             break;
         }
@@ -76,22 +76,22 @@ bool TPIClass::exitProgrammingMode()
     return (count > 100);
 }
 
-void TPIClass::tpiSSTCS(uint8_t address, uint8_t data)
+void TPIClass::sstcs(uint8_t address, uint8_t data)
 {
-    tpiSend(SSTCS | address);
-    tpiSend(data);
+    write(SSTCS | address);
+    write(data);
 }
 
-void TPIClass::tpiSKEY()
+void TPIClass::skey()
 {
-    tpiSend(SKEY);
-    tpiSend(0xFF);
-    tpiSend(0x88);
-    tpiSend(0xD8);
-    tpiSend(0xCD);
-    tpiSend(0x45);
-    tpiSend(0xAB);
-    tpiSend(0x89);
-    tpiSend(0x12);
+    write(SKEY);
+    write(0xFF);
+    write(0x88);
+    write(0xD8);
+    write(0xCD);
+    write(0x45);
+    write(0xAB);
+    write(0x89);
+    write(0x12);
 }
 
