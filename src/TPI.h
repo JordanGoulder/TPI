@@ -33,10 +33,10 @@ private:
     static const bool       NO_POST_INC = false;
     static const bool       POST_INC    = true;
 
-    static const uint8_t    TPISR   = 0x00;
-    static const uint8_t    TPIPCR  = 0x02;
-    static const uint8_t    TPIIR   = 0x0F;
-    static const uint8_t    NVMEN   = 1;
+    static const uint8_t    TPISR       = 0x00;
+    static const uint8_t    TPIPCR      = 0x02;
+    static const uint8_t    TPIIR       = 0x0F;
+    static const uint8_t    NVMEN       = 1;
 
     static const uint8_t    SLD         = 0x20;
     static const uint8_t    SLD_POSTINC = 0x24;
