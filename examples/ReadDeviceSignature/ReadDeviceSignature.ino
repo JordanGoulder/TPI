@@ -1,10 +1,12 @@
 #include <TPI.h>
 
+static const int RESET_PIN = 8;
+
 void setup()
 {
     Serial.begin(9600);
 
-    if (TPI.begin()) {
+    if (TPI.begin(RESET_PIN)) {
         uint32_t deviceSignature = TPI.readDeviceSignature();
         TPI.end();
 

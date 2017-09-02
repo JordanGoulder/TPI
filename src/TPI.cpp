@@ -2,10 +2,16 @@
 #include <SPI.h>
 
 SPISettings TPIClass::spiSettings(1000000, LSBFIRST, SPI_MODE0);
+int TPIClass::resetPin = SS;
 
-bool TPIClass::begin()
+bool TPIClass::begin(int resetPin)
 {
+    TPIClass::resetPin = resetPin;
+
+    enableSpiInterface();
+
     enableTpiInterface();
+
     bool success = enterNvmProgrammingMode();
 
     if (!success) {
@@ -19,6 +25,7 @@ void TPIClass::end()
 {
     exitNvmProgrammingMode();
     disableTpiInterface();
+    disableSpiInterface();
 }
 
 uint32_t TPIClass::readDeviceSignature()
@@ -32,13 +39,28 @@ uint32_t TPIClass::readDeviceSignature()
     return signature;
 }
 
-void TPIClass::enableTpiInterface()
+void TPIClass::enableSpiInterface()
 {
     SPI.begin();
 
-    digitalWrite(SS, LOW);
+    pinMode(resetPin, OUTPUT);
+    digitalWrite(resetPin, HIGH);
+}
 
-    delay(1);
+void TPIClass::disableSpiInterface()
+{
+    SPI.end();
+
+    pinMode(resetPin, INPUT);
+    pinMode(MOSI, INPUT);
+    pinMode(MISO, INPUT);
+    pinMode(SCK, INPUT);
+}
+
+void TPIClass::enableTpiInterface()
+{
+    digitalWrite(resetPin, LOW);
+    delay(T_RST);
 
     SPI.beginTransaction(spiSettings);
     SPI.transfer(0xff);
@@ -49,16 +71,8 @@ void TPIClass::enableTpiInterface()
 
 void TPIClass::disableTpiInterface()
 {
-    digitalWrite(SS, HIGH);
-
-    delay(1);
-
-    SPI.end();
-
-    pinMode(SS, INPUT);
-    pinMode(MOSI, INPUT);
-    pinMode(MISO, INPUT);
-    pinMode(SCK, INPUT);
+    digitalWrite(resetPin, HIGH);
+    delay(T_RST);
 }
 
 bool TPIClass::enterNvmProgrammingMode()

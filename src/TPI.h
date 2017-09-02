@@ -9,11 +9,14 @@ class TPIClass
 {
 
 public:
-    static bool             begin();
+    static bool             begin(int resetPin);
     static void             end();
     static uint32_t         readDeviceSignature();
 
 private:
+    static void             enableSpiInterface();
+    static void             disableSpiInterface();
+
     static void             enableTpiInterface();
     static void             disableTpiInterface();
 
@@ -52,7 +55,10 @@ private:
     static const uint8_t    SSTCS           = 0xC0;
     static const uint8_t    SKEY            = 0xE0;
 
+    static const uint8_t    T_RST           = 1;
+
     static SPISettings      spiSettings;
+    static int              resetPin;
 };
 
 extern TPIClass TPI;
