@@ -139,7 +139,7 @@ void TPIClass::skey(uint64_t key)
     write(SKEY);
 
     while (key) {
-        write(key & 0xFF);
+        write(LOW_BYTE(key));
         key >>= 8;
     }
 }
