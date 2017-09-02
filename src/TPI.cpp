@@ -28,6 +28,12 @@ void TPIClass::end()
     disableSpiInterface();
 }
 
+uint8_t TPIClass::oscillatorCalibration()
+{
+    sstpr(CALIBRATION_BITS_START);
+    return sld();
+}
+
 uint32_t TPIClass::deviceSignature()
 {
     uint32_t signature;

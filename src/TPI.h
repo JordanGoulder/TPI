@@ -19,6 +19,7 @@ class TPIClass
 public:
     static bool             begin(int resetPin);
     static void             end();
+    static uint8_t          oscillatorCalibration();
     static uint32_t         deviceSignature();
 
 private:
