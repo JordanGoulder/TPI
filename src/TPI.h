@@ -67,6 +67,14 @@ private:
 
     static const uint64_t   NVM_PROG_ENABLE = 0x1289AB45CDD888FFULL;
 
+    static const uint16_t   IO_SPACE_START              = 0x0000;
+    static const uint16_t   SRAM_DATA_MEMORY_START      = 0x0040;
+    static const uint16_t   NVM_LOCK_BITS_START         = 0x3F00;
+    static const uint16_t   CONFIGURATION_BITS_START    = 0x3F40;
+    static const uint16_t   CALIBRATION_BITS_START      = 0x3F80;
+    static const uint16_t   DEVICE_ID_BITS_START        = 0x3FC0;
+    static const uint16_t   PROGRAM_FLASH_MEMORY_START  = 0x4000;
+
     static SPISettings      spiSettings;
     static int              resetPin;
 };

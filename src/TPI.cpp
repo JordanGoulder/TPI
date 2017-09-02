@@ -32,7 +32,7 @@ uint32_t TPIClass::readDeviceSignature()
 {
     uint32_t signature;
 
-    sstpr(0x3FC0);
+    sstpr(DEVICE_ID_BITS_START);
 
     signature = sld(POST_INC);
     signature <<= 8;
