@@ -124,13 +124,13 @@ void TPIClass::sstpr(uint16_t data)
 
 uint8_t TPIClass::sldcs(uint8_t address)
 {
-    write(SLDCS | address);
+    write(SLDCS | (address & CS_ADDR_MASK));
     return read();
 }
 
 void TPIClass::sstcs(uint8_t address, uint8_t data)
 {
-    write(SSTCS | address);
+    write(SSTCS | (address & CS_ADDR_MASK));
     write(data);
 }
 

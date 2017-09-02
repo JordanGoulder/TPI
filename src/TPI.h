@@ -63,6 +63,8 @@ private:
     static const uint8_t    SSTCS           = 0xC0;
     static const uint8_t    SKEY            = 0xE0;
 
+    static const uint8_t    CS_ADDR_MASK    = 0x0F;
+
     static const uint8_t    T_RST           = 1;
 
     static const uint64_t   NVM_PROG_ENABLE = 0x1289AB45CDD888FFULL;
