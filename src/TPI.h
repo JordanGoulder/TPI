@@ -19,7 +19,7 @@ class TPIClass
 public:
     static bool             begin(int resetPin);
     static void             end();
-    static uint32_t         readDeviceSignature();
+    static uint32_t         deviceSignature();
 
 private:
     static void             enableSpiInterface();

@@ -28,7 +28,7 @@ void TPIClass::end()
     disableSpiInterface();
 }
 
-uint32_t TPIClass::readDeviceSignature()
+uint32_t TPIClass::deviceSignature()
 {
     uint32_t signature;
 

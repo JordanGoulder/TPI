@@ -7,7 +7,7 @@ void setup()
     Serial.begin(9600);
 
     if (TPI.begin(RESET_PIN)) {
-        uint32_t deviceSignature = TPI.readDeviceSignature();
+        uint32_t deviceSignature = TPI.deviceSignature();
         TPI.end();
 
         Serial.print("Device Signature: ");
