@@ -83,7 +83,7 @@ void TPIClass::disableTpiInterface()
 
 bool TPIClass::enterNvmProgrammingMode()
 {
-    skey();
+    skey(NVM_PROG_ENABLE);
 
     uint8_t retriesRemaining = 100;
 
@@ -134,13 +134,13 @@ void TPIClass::sstcs(uint8_t address, uint8_t data)
     write(data);
 }
 
-void TPIClass::skey()
+void TPIClass::skey(uint64_t key)
 {
-    static uint64_t nvm_program_enable = 0x1289AB45CDD888FFULL;
     write(SKEY);
-    while (nvm_program_enable) {
-        write(nvm_program_enable & 0xFF);
-        nvm_program_enable >>= 8;
+
+    while (key) {
+        write(key & 0xFF);
+        key >>= 8;
     }
 }
 

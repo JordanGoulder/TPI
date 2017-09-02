@@ -30,7 +30,7 @@ private:
     static void             sout    (uint8_t address, uint8_t data);
     static uint8_t          sldcs   (uint8_t address);
     static void             sstcs   (uint8_t address, uint8_t data);
-    static void             skey    ();
+    static void             skey    (uint64_t key);
 
     static void             write   (uint8_t value);
     static uint8_t          read    ();
@@ -56,6 +56,8 @@ private:
     static const uint8_t    SKEY            = 0xE0;
 
     static const uint8_t    T_RST           = 1;
+
+    static const uint64_t   NVM_PROG_ENABLE = 0x1289AB45CDD888FFULL;
 
     static SPISettings      spiSettings;
     static int              resetPin;
