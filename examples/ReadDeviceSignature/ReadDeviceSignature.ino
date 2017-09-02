@@ -1,6 +1,6 @@
 #include <TPI.h>
 
-static const int RESET_PIN = 8;
+static const int RESET_PIN = 10;
 
 void setup()
 {
