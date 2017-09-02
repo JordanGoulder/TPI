@@ -30,10 +30,16 @@ void TPIClass::end()
 
 uint32_t TPIClass::readDeviceSignature()
 {
-    uint32_t signature = 0;
+    uint32_t signature;
+
     sstpr(0x3FC0);
-    signature |= ((uint32_t) sld(POST_INC)) << 16;
-    signature |= ((uint32_t) sld(POST_INC)) << 8;
+
+    signature = sld(POST_INC);
+    signature <<= 8;
+
+    signature |= sld(POST_INC);
+    signature <<= 8;
+
     signature |= sld();
 
     return signature;
