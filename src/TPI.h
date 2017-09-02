@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+class SPISettings;
+
 class TPIClass
 {
 
@@ -50,6 +52,7 @@ private:
     static const uint8_t    SSTCS           = 0xC0;
     static const uint8_t    SKEY            = 0xE0;
 
+    static SPISettings      spiSettings;
 };
 
 extern TPIClass TPI;

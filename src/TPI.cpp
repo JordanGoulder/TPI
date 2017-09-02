@@ -1,6 +1,8 @@
 #include "TPI.h"
 #include <SPI.h>
 
+SPISettings TPIClass::spiSettings(1000000, LSBFIRST, SPI_MODE0);
+
 bool TPIClass::begin()
 {
     enableTpiInterface();
@@ -33,17 +35,16 @@ uint32_t TPIClass::readDeviceSignature()
 void TPIClass::enableTpiInterface()
 {
     SPI.begin();
-    SPI.setBitOrder(LSBFIRST);
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setClockDivider(SPI_CLOCK_DIV32);
 
     digitalWrite(SS, LOW);
 
     delay(1);
 
+    SPI.beginTransaction(spiSettings);
     SPI.transfer(0xff);
     SPI.transfer(0xff);
     SPI.transfer(0xff);
+    SPI.endTransaction();
 }
 
 void TPIClass::disableTpiInterface()
@@ -130,16 +131,22 @@ void TPIClass::write(uint8_t value)
     par ^= (par >> 2); // b[3:2] (+) b[1:0]
     par ^= (par >> 1); // b[1] (+) b[0]
 
+    SPI.beginTransaction(spiSettings);
+
     // REMEMBER: this is in LSBfirst mode and idle is high
     // (2 idle) + (1 start bit) + (data[4:0])
     SPI.transfer(0x03 | (value << 3));
     // (data[7:5]) + (1 parity) + (2 stop bits) + (2 idle)
     SPI.transfer(0xf0 | (par << 3) | (value >> 5));
+
+    SPI.endTransaction();
 }
 
 uint8_t TPIClass::read()
 {
     uint8_t b1, b2, b3;
+
+    SPI.beginTransaction(spiSettings);
 
     // keep transmitting high(idle) while waiting for a start bit
     do {
@@ -154,6 +161,8 @@ uint8_t TPIClass::read()
     if (0x0f == (0x0f & b1)) {
         b3 = SPI.transfer(0xff);
     }
+
+    SPI.endTransaction();
 
     // now shift the bits into the right positions
     // b1 should hold only idle and start bits = 0b01111111
