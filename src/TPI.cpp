@@ -69,9 +69,9 @@ void TPIClass::enableTpiInterface()
     delay(T_RST);
 
     SPI.beginTransaction(spiSettings);
-    SPI.transfer(0xff);
-    SPI.transfer(0xff);
-    SPI.transfer(0xff);
+    SPI.transfer(0xFF);
+    SPI.transfer(0xFF);
+    SPI.transfer(0xFF);
     SPI.endTransaction();
 }
 
