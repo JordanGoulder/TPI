@@ -3,6 +3,14 @@
 
 #include <Arduino.h>
 
+#ifndef LOW_BYTE
+#define LOW_BYTE(x)     ( (uint8_t) ( (x) & 0xFF) )
+#endif
+
+#ifndef HIGH_BYTE
+#define HIGH_BYTE(x)    ( (uint8_t) ( ( (x) >> 8) & 0xFF) )
+#endif
+
 class SPISettings;
 
 class TPIClass

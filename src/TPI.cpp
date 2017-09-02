@@ -117,9 +117,9 @@ uint8_t TPIClass::sld(bool postIncrement)
 void TPIClass::sstpr(uint16_t data)
 {
     write(SSTPR_LO);
-    write(data & 0xFF);
+    write(LOW_BYTE(data));
     write(SSTPR_HI);
-    write(data >> 8);
+    write(HIGH_BYTE(data));
 }
 
 uint8_t TPIClass::sldcs(uint8_t address)
