@@ -85,7 +85,7 @@ void TPIClass::exitNvmProgrammingMode()
 uint8_t TPIClass::sld(bool postIncrement)
 {
     if (postIncrement) {
-        write(SLD_POSTINC);
+        write(SLD_POST_INC);
     } else {
         write(SLD);
     }
