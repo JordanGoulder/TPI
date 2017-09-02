@@ -79,15 +79,15 @@ bool TPIClass::enterNvmProgrammingMode()
 {
     skey();
 
-    uint8_t retries = 100;
+    uint8_t retriesRemaining = 100;
 
     do {
         if ((sldcs(TPISR) & _BV(NVMEN)) == _BV(NVMEN)) {
             break;
         }
-    } while (--retries);
+    } while (--retriesRemaining);
 
-    return (retries > 0);
+    return (retriesRemaining > 0);
 }
 
 void TPIClass::exitNvmProgrammingMode()
