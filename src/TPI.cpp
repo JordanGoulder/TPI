@@ -28,6 +28,27 @@ void TPIClass::end()
     disableSpiInterface();
 }
 
+bool TPIClass::externalResetDisable()
+{
+    sstpr(CONFIGURATION_BITS_START);
+
+    return ((sld() & _BV(RSTDISBL)) == 0);
+}
+
+bool TPIClass::watchdogTimerAlwaysOn()
+{
+    sstpr(CONFIGURATION_BITS_START);
+
+    return ((sld() & _BV(WDTON)) == 0);
+}
+
+bool TPIClass::systemClockOutput()
+{
+    sstpr(CONFIGURATION_BITS_START);
+
+    return ((sld() & _BV(CKOUT)) == 0);
+}
+
 uint8_t TPIClass::oscillatorCalibration()
 {
     sstpr(CALIBRATION_BITS_START);

@@ -19,7 +19,13 @@ class TPIClass
 public:
     static bool             begin(int resetPin);
     static void             end();
+
+    static bool             externalResetDisable();
+    static bool             watchdogTimerAlwaysOn();
+    static bool             systemClockOutput();
+
     static uint8_t          oscillatorCalibration();
+
     static uint32_t         deviceSignature();
 
 private:
@@ -77,6 +83,10 @@ private:
     static const uint16_t   CALIBRATION_BITS_START      = 0x3F80;
     static const uint16_t   DEVICE_ID_BITS_START        = 0x3FC0;
     static const uint16_t   PROGRAM_FLASH_MEMORY_START  = 0x4000;
+
+    static const uint8_t    RSTDISBL        = 0;
+    static const uint8_t    WDTON           = 1;
+    static const uint8_t    CKOUT           = 2;
 
     static SPISettings      spiSettings;
     static int              resetPin;
