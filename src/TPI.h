@@ -31,8 +31,13 @@ public:
     static NvmProtectionMode    nvmProtectionMode();
 
     static bool                 externalResetDisable();
+    static bool                 setExternalResetDisable(bool enable);
+
     static bool                 watchdogTimerAlwaysOn();
+    static bool                 setWatchdogTimerAlwaysOn(bool enable);
+
     static bool                 systemClockOutput();
+    static bool                 setSystemClockOutput(bool enable);
 
     static uint8_t              oscillatorCalibration();
 
@@ -47,6 +52,8 @@ private:
 
     static bool                 enterNvmProgrammingMode();
     static void                 exitNvmProgrammingMode();
+
+    static bool                 setConfigBit(uint8_t bit, bool enable);
 
     static uint8_t              sld     (bool postIncrement = NO_POST_INC);
     static void                 sst     (uint8_t data, bool postIncrement = NO_POST_INC);
@@ -67,6 +74,15 @@ private:
     static const uint8_t        TPIPCR          = 0x02;
     static const uint8_t        TPIIR           = 0x0F;
     static const uint8_t        NVMEN           = 1;
+
+    static const uint8_t        NVMCSR          = 0x32;
+    static const uint8_t        NVMBSY          = 7;
+    static const uint8_t        NVMCMD          = 0x33;
+    static const uint8_t        NO_OPERATION    = 0x00;
+    static const uint8_t        CHIP_ERASE      = 0x10;
+    static const uint8_t        SECTION_ERASE   = 0x14;
+    static const uint8_t        WRITE_WORD      = 0x1D;
+
 
     static const uint8_t        SLD             = 0x20;
     static const uint8_t        SLD_POST_INC    = 0x24;

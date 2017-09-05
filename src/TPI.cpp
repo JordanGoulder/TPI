@@ -1,6 +1,14 @@
 #include "TPI.h"
 #include <SPI.h>
 
+#define IO_ADDR_HI_MASK (0x30)
+#define IO_ADDR_LO_MASK (0x0F)
+#define IO_ADDR_HI_OFFSET (1)
+#define IO_ADDR_LO_OFFSET (0)
+
+#define IO_ADDR(x) (        (((x) & IO_ADDR_HI_MASK) << IO_ADDR_HI_OFFSET) \
+                        |   (((x) & IO_ADDR_LO_MASK) << IO_ADDR_LO_OFFSET) )
+
 SPISettings TPIClass::spiSettings(1000000, LSBFIRST, SPI_MODE0);
 int TPIClass::resetPin = SS;
 
@@ -56,6 +64,11 @@ bool TPIClass::externalResetDisable()
     return ((sld() & _BV(RSTDISBL)) == 0);
 }
 
+bool TPIClass::setExternalResetDisable(bool enable)
+{
+    return setConfigBit(RSTDISBL, enable);
+}
+
 bool TPIClass::watchdogTimerAlwaysOn()
 {
     sstpr(CONFIGURATION_BITS_START);
@@ -63,11 +76,21 @@ bool TPIClass::watchdogTimerAlwaysOn()
     return ((sld() & _BV(WDTON)) == 0);
 }
 
+bool TPIClass::setWatchdogTimerAlwaysOn(bool enable)
+{
+    return setConfigBit(WDTON, enable);
+}
+
 bool TPIClass::systemClockOutput()
 {
     sstpr(CONFIGURATION_BITS_START);
 
     return ((sld() & _BV(CKOUT)) == 0);
+}
+
+bool TPIClass::setSystemClockOutput(bool enable)
+{
+    return setConfigBit(CKOUT, enable);
 }
 
 uint8_t TPIClass::oscillatorCalibration()
@@ -151,6 +174,48 @@ void TPIClass::exitNvmProgrammingMode()
     sstcs(TPISR, status);
 }
 
+bool TPIClass::setConfigBit(uint8_t bit, bool enable)
+{
+    sstpr(CONFIGURATION_BITS_START);
+
+    uint8_t config = sld(true);
+
+    sout(NVMCMD, SECTION_ERASE);
+    sst(0xFF);
+
+    uint8_t retriesRemaining = 100;
+
+    do {
+        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+            break;
+        }
+    } while (--retriesRemaining);
+
+    if (retriesRemaining) {
+
+        if (enable) {
+            config &= ~_BV(bit);
+        } else {
+            config |= _BV(bit);
+        }
+
+        sstpr(CONFIGURATION_BITS_START);
+        sout(NVMCMD, WRITE_WORD);
+        sst(config, true);
+        sst(0xFF);
+
+        retriesRemaining = 100;
+
+        do {
+            if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+                break;
+            }
+        } while (--retriesRemaining);
+    }
+
+    return (retriesRemaining > 0);
+}
+
 uint8_t TPIClass::sld(bool postIncrement)
 {
     if (postIncrement) {
@@ -162,12 +227,35 @@ uint8_t TPIClass::sld(bool postIncrement)
     return read();
 }
 
+void TPIClass::sst(uint8_t data, bool postIncrement)
+{
+    if (postIncrement) {
+        write(SST_POST_INC);
+    } else {
+        write(SST);
+    }
+
+    return write(data);
+}
+
 void TPIClass::sstpr(uint16_t data)
 {
     write(SSTPR_LO);
     write(LOW_BYTE(data));
     write(SSTPR_HI);
     write(HIGH_BYTE(data));
+}
+
+uint8_t TPIClass::sin(uint8_t address)
+{
+    write(SIN | IO_ADDR(address));
+    return read();
+}
+
+void TPIClass::sout(uint8_t address, uint8_t data)
+{
+    write(SOUT | IO_ADDR(address));
+    write(data);
 }
 
 uint8_t TPIClass::sldcs(uint8_t address)
