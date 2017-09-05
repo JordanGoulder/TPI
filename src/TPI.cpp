@@ -28,6 +28,27 @@ void TPIClass::end()
     disableSpiInterface();
 }
 
+TPIClass::NvmProtectionMode TPIClass::nvmProtectionMode()
+{
+    NvmProtectionMode mode;
+
+    sstpr(NVM_LOCK_BITS_START);
+
+    uint8_t lockBits = sld();
+
+    if ((lockBits & _BV(NVLB1)) == _BV(NVLB1) && (lockBits & _BV(NVLB2)) == _BV(NVLB2)) {
+        mode = NO_PROTECTION;
+    } else if ((lockBits & _BV(NVLB1)) == 0 && (lockBits & _BV(NVLB2)) == 0) {
+        mode = WRITE_AND_VERIFY_PROTECTION;
+    } else if ((lockBits & _BV(NVLB1)) == 0) {
+        mode = WRITE_PROTECTION;
+    } else {
+        mode = UNDEFINED_PROTECTION;
+    }
+
+    return mode;
+}
+
 bool TPIClass::externalResetDisable()
 {
     sstpr(CONFIGURATION_BITS_START);
