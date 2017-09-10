@@ -57,6 +57,60 @@ TPIClass::NvmProtectionMode TPIClass::nvmProtectionMode()
     return mode;
 }
 
+bool TPIClass::setNvmProtectionMode(NvmProtectionMode mode)
+{
+    NvmProtectionMode currentMode = nvmProtectionMode();
+
+    uint8_t lockBits;
+
+    switch (mode) {
+        case NO_PROTECTION:
+            if (currentMode == NO_PROTECTION) {
+                return true;
+            } else {
+                return false;
+            }
+            break;
+
+        case WRITE_PROTECTION:
+            if ((currentMode != NO_PROTECTION) && (currentMode != WRITE_PROTECTION)) {
+                return false;
+            } else {
+                lockBits = ~_BV(NVLB1);
+            }
+            break;
+
+        case WRITE_AND_VERIFY_PROTECTION:
+            if ((currentMode != NO_PROTECTION) && (currentMode != WRITE_PROTECTION)) {
+                return false;
+            } else {
+                lockBits = ~(_BV(NVLB2) | _BV(NVLB1));
+            }
+            break;
+
+
+        default:
+            return false;
+            break;
+    }
+
+    sstpr(NVM_LOCK_BITS_START);
+    sout(NVMCMD, WRITE_WORD);
+    sst(lockBits, true);
+    sst(0xFF);
+
+    uint8_t retriesRemaining = 100;
+
+    do {
+        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+            break;
+        }
+    } while (--retriesRemaining);
+
+    return (retriesRemaining > 0);
+}
+
+
 bool TPIClass::externalResetDisable()
 {
     sstpr(CONFIGURATION_BITS_START);

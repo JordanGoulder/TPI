@@ -29,6 +29,7 @@ public:
     };
 
     static NvmProtectionMode    nvmProtectionMode();
+    static bool                 setNvmProtectionMode(NvmProtectionMode mode);
 
     static bool                 externalResetDisable();
     static bool                 setExternalResetDisable(bool enable);
