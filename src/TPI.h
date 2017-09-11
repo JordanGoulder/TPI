@@ -44,6 +44,8 @@ public:
 
     static uint32_t             deviceSignature();
 
+    static void                 readMemory(uint16_t address, void *buffer, uint16_t count);
+
 private:
     static void                 enableSpiInterface();
     static void                 disableSpiInterface();

@@ -170,6 +170,15 @@ uint32_t TPIClass::deviceSignature()
     return signature;
 }
 
+void TPIClass::readMemory(uint16_t address, void *buffer, uint16_t count)
+{
+    sstpr(address);
+
+    while (count--) {
+        *((uint8_t *)buffer++) = sld(POST_INC);
+    }
+}
+
 void TPIClass::enableSpiInterface()
 {
     SPI.begin();
