@@ -179,6 +179,66 @@ void TPIClass::readMemory(uint16_t address, void *buffer, uint16_t count)
     }
 }
 
+bool TPIClass::eraseChip()
+{
+    sout(NVMCMD, CHIP_ERASE);
+
+    sstpr(PROGRAM_FLASH_MEMORY_START);
+
+    sst(0xFF, POST_INC);
+    sst(0xFF);
+
+    uint8_t retriesRemaining = 100;
+
+    do {
+        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+            break;
+        }
+    } while (--retriesRemaining);
+
+    return (retriesRemaining > 0);
+}
+
+bool TPIClass::eraseConfigurationMemory()
+{
+    sout(NVMCMD, SECTION_ERASE);
+
+    sstpr(CONFIGURATION_BITS_START);
+
+    sst(0xFF, POST_INC);
+    sst(0xFF);
+
+    uint8_t retriesRemaining = 100;
+
+    do {
+        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+            break;
+        }
+    } while (--retriesRemaining);
+
+    return (retriesRemaining > 0);
+}
+
+bool TPIClass::eraseProgramMemory()
+{
+    sout(NVMCMD, SECTION_ERASE);
+
+    sstpr(PROGRAM_FLASH_MEMORY_START);
+
+    sst(0xFF, POST_INC);
+    sst(0xFF);
+
+    uint8_t retriesRemaining = 100;
+
+    do {
+        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+            break;
+        }
+    } while (--retriesRemaining);
+
+    return (retriesRemaining > 0);
+}
+
 void TPIClass::enableSpiInterface()
 {
     SPI.begin();

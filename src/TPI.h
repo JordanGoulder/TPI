@@ -46,6 +46,10 @@ public:
 
     static void                 readMemory(uint16_t address, void *buffer, uint16_t count);
 
+    static bool                 eraseChip();
+    static bool                 eraseConfigurationMemory();
+    static bool                 eraseProgramMemory();
+
 private:
     static void                 enableSpiInterface();
     static void                 disableSpiInterface();
