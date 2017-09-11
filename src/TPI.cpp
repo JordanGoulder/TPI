@@ -172,10 +172,12 @@ uint32_t TPIClass::deviceSignature()
 
 void TPIClass::readMemory(uint16_t address, void *buffer, uint16_t count)
 {
+    uint8_t *pBuffer = (uint8_t *) buffer;
+
     sstpr(address);
 
     while (count--) {
-        *((uint8_t *)buffer++) = sld(POST_INC);
+        *(pBuffer++) = sld(POST_INC);
     }
 }
 
