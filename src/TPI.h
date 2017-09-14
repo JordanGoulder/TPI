@@ -45,6 +45,7 @@ public:
     static uint32_t             deviceSignature();
 
     static void                 readMemory(uint16_t address, void *buffer, uint16_t count);
+    static bool                 writeMemory(uint16_t address, void *buffer, uint16_t count);
 
     static bool                 eraseChip();
     static bool                 eraseConfigurationMemory();
@@ -59,6 +60,7 @@ private:
 
     static bool                 enterNvmProgrammingMode();
     static void                 exitNvmProgrammingMode();
+    static bool                 whileNvmBusy();
 
     static bool                 setConfigBit(uint8_t bit, bool enable);
 

@@ -6,8 +6,10 @@
 #define IO_ADDR_HI_OFFSET (1)
 #define IO_ADDR_LO_OFFSET (0)
 
-#define IO_ADDR(x) (        (((x) & IO_ADDR_HI_MASK) << IO_ADDR_HI_OFFSET) \
+#define IO_ADDR(x)  (       (((x) & IO_ADDR_HI_MASK) << IO_ADDR_HI_OFFSET) \
                         |   (((x) & IO_ADDR_LO_MASK) << IO_ADDR_LO_OFFSET) )
+
+#define IS_ODD(x)   (((x) & 0x01) == 0x01)
 
 SPISettings TPIClass::spiSettings(1000000, LSBFIRST, SPI_MODE0);
 int TPIClass::resetPin = SS;
@@ -181,6 +183,63 @@ void TPIClass::readMemory(uint16_t address, void *buffer, uint16_t count)
     }
 }
 
+bool TPIClass::writeMemory(uint16_t address, void *buffer, uint16_t count)
+{
+    uint8_t *pBuffer = (uint8_t *) buffer;
+
+    if (IS_ODD(address)) {
+
+        sstpr(address - 1);
+        uint8_t lowByte = sld();
+
+        sout(NVMCMD, WRITE_WORD);
+
+        sst(lowByte, POST_INC);
+        sst(*(pBuffer++), POST_INC);
+
+        if (!whileNvmBusy()) {
+            return false;
+        }
+
+        address++;
+        count--;
+    }
+
+    sstpr(address);
+    sout(NVMCMD, WRITE_WORD);
+
+    while (count > 1) {
+
+        sst(*(pBuffer++), POST_INC);
+        sst(*(pBuffer++), POST_INC);
+
+        if (!whileNvmBusy()) {
+            return false;
+        }
+
+        address += 2;
+        count -= 2;
+    }
+
+    if (count) {
+
+        sld(POST_INC);
+        uint8_t highByte = sld();
+
+        sstpr(address);
+        sout(NVMCMD, WRITE_WORD);
+
+        sst(*(pBuffer++), POST_INC);
+        sst(highByte, POST_INC);
+
+        if (!whileNvmBusy()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool TPIClass::eraseChip()
 {
     sout(NVMCMD, CHIP_ERASE);
@@ -297,6 +356,19 @@ void TPIClass::exitNvmProgrammingMode()
     uint8_t status = sldcs(TPISR);
     status &= ~_BV(NVMEN);
     sstcs(TPISR, status);
+}
+
+bool TPIClass::whileNvmBusy()
+{
+    uint8_t retriesRemaining = 100;
+
+    do {
+        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+            break;
+        }
+    } while (--retriesRemaining);
+
+    return (retriesRemaining > 0);
 }
 
 bool TPIClass::setConfigBit(uint8_t bit, bool enable)
