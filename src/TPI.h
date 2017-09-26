@@ -63,7 +63,7 @@ private:
     static bool                 whileNvmBusy();
 
     static bool                 setConfigBit(uint8_t bit, bool enable);
-
+/*
     static uint8_t              sld     (bool postIncrement = NO_POST_INC);
     static void                 sst     (uint8_t data, bool postIncrement = NO_POST_INC);
     static void                 sstpr   (uint16_t data);
@@ -72,6 +72,7 @@ private:
     static uint8_t              sldcs   (uint8_t address);
     static void                 sstcs   (uint8_t address, uint8_t data);
     static void                 skey    (uint64_t key);
+*/
 
     static void                 write   (uint8_t value);
     static uint8_t              read    ();

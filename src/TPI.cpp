@@ -1,13 +1,7 @@
 #include "TPI.h"
 #include <SPI.h>
 
-#define IO_ADDR_HI_MASK (0x30)
-#define IO_ADDR_LO_MASK (0x0F)
-#define IO_ADDR_HI_OFFSET (1)
-#define IO_ADDR_LO_OFFSET (0)
-
-#define IO_ADDR(x)  (       (((x) & IO_ADDR_HI_MASK) << IO_ADDR_HI_OFFSET) \
-                        |   (((x) & IO_ADDR_LO_MASK) << IO_ADDR_LO_OFFSET) )
+#include "tpi_access_layer.h"
 
 #define IS_ODD(x)   (((x) & 0x01) == 0x01)
 
@@ -42,9 +36,9 @@ TPIClass::NvmProtectionMode TPIClass::nvmProtectionMode()
 {
     NvmProtectionMode mode;
 
-    sstpr(NVM_LOCK_BITS_START);
+    tpi_sstpr(NVM_LOCK_BITS_START);
 
-    uint8_t lockBits = sld();
+    uint8_t lockBits = tpi_sld();
 
     if ((lockBits & _BV(NVLB1)) == _BV(NVLB1) && (lockBits & _BV(NVLB2)) == _BV(NVLB2)) {
         mode = NO_PROTECTION;
@@ -96,15 +90,15 @@ bool TPIClass::setNvmProtectionMode(NvmProtectionMode mode)
             break;
     }
 
-    sstpr(NVM_LOCK_BITS_START);
-    sout(NVMCMD, WRITE_WORD);
-    sst(lockBits, true);
-    sst(0xFF);
+    tpi_sstpr(NVM_LOCK_BITS_START);
+    tpi_sout(WRITE_WORD, NVMCMD);
+    tpi_sst_postinc(lockBits);
+    tpi_sst(0xFF);
 
     uint8_t retriesRemaining = 100;
 
     do {
-        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
             break;
         }
     } while (--retriesRemaining);
@@ -115,9 +109,9 @@ bool TPIClass::setNvmProtectionMode(NvmProtectionMode mode)
 
 bool TPIClass::externalResetDisable()
 {
-    sstpr(CONFIGURATION_BITS_START);
+    tpi_sstpr(CONFIGURATION_BITS_START);
 
-    return ((sld() & _BV(RSTDISBL)) == 0);
+    return ((tpi_sld() & _BV(RSTDISBL)) == 0);
 }
 
 bool TPIClass::setExternalResetDisable(bool enable)
@@ -127,9 +121,9 @@ bool TPIClass::setExternalResetDisable(bool enable)
 
 bool TPIClass::watchdogTimerAlwaysOn()
 {
-    sstpr(CONFIGURATION_BITS_START);
+    tpi_sstpr(CONFIGURATION_BITS_START);
 
-    return ((sld() & _BV(WDTON)) == 0);
+    return ((tpi_sld() & _BV(WDTON)) == 0);
 }
 
 bool TPIClass::setWatchdogTimerAlwaysOn(bool enable)
@@ -139,9 +133,9 @@ bool TPIClass::setWatchdogTimerAlwaysOn(bool enable)
 
 bool TPIClass::systemClockOutput()
 {
-    sstpr(CONFIGURATION_BITS_START);
+    tpi_sstpr(CONFIGURATION_BITS_START);
 
-    return ((sld() & _BV(CKOUT)) == 0);
+    return ((tpi_sld() & _BV(CKOUT)) == 0);
 }
 
 bool TPIClass::setSystemClockOutput(bool enable)
@@ -151,23 +145,23 @@ bool TPIClass::setSystemClockOutput(bool enable)
 
 uint8_t TPIClass::oscillatorCalibration()
 {
-    sstpr(CALIBRATION_BITS_START);
-    return sld();
+    tpi_sstpr(CALIBRATION_BITS_START);
+    return tpi_sld();
 }
 
 uint32_t TPIClass::deviceSignature()
 {
     uint32_t signature;
 
-    sstpr(DEVICE_ID_BITS_START);
+    tpi_sstpr(DEVICE_ID_BITS_START);
 
-    signature = sld(POST_INC);
+    signature = tpi_sld_postinc();
     signature <<= 8;
 
-    signature |= sld(POST_INC);
+    signature |= tpi_sld_postinc();
     signature <<= 8;
 
-    signature |= sld();
+    signature |= tpi_sld();
 
     return signature;
 }
@@ -176,10 +170,10 @@ void TPIClass::readMemory(uint16_t address, void *buffer, uint16_t count)
 {
     uint8_t *pBuffer = (uint8_t *) buffer;
 
-    sstpr(address);
+    tpi_sstpr(address);
 
     while (count--) {
-        *(pBuffer++) = sld(POST_INC);
+        *(pBuffer++) = tpi_sld_postinc();
     }
 }
 
@@ -189,13 +183,13 @@ bool TPIClass::writeMemory(uint16_t address, void *buffer, uint16_t count)
 
     if (IS_ODD(address)) {
 
-        sstpr(address - 1);
-        uint8_t lowByte = sld();
+        tpi_sstpr(address - 1);
+        uint8_t lowByte = tpi_sld();
 
-        sout(NVMCMD, WRITE_WORD);
+        tpi_sout(WRITE_WORD, NVMCMD);
 
-        sst(lowByte, POST_INC);
-        sst(*(pBuffer++), POST_INC);
+        tpi_sst_postinc(lowByte);
+        tpi_sst_postinc(*(pBuffer++));
 
         if (!whileNvmBusy()) {
             return false;
@@ -205,13 +199,13 @@ bool TPIClass::writeMemory(uint16_t address, void *buffer, uint16_t count)
         count--;
     }
 
-    sstpr(address);
-    sout(NVMCMD, WRITE_WORD);
+    tpi_sstpr(address);
+    tpi_sout(WRITE_WORD, NVMCMD);
 
     while (count > 1) {
 
-        sst(*(pBuffer++), POST_INC);
-        sst(*(pBuffer++), POST_INC);
+        tpi_sst_postinc(*(pBuffer++));
+        tpi_sst_postinc(*(pBuffer++));
 
         if (!whileNvmBusy()) {
             return false;
@@ -223,14 +217,14 @@ bool TPIClass::writeMemory(uint16_t address, void *buffer, uint16_t count)
 
     if (count) {
 
-        sld(POST_INC);
-        uint8_t highByte = sld();
+        tpi_sld_postinc();
+        uint8_t highByte = tpi_sld();
 
-        sstpr(address);
-        sout(NVMCMD, WRITE_WORD);
+        tpi_sstpr(address);
+        tpi_sout(WRITE_WORD, NVMCMD);
 
-        sst(*(pBuffer++), POST_INC);
-        sst(highByte, POST_INC);
+        tpi_sst_postinc(*(pBuffer++));
+        tpi_sst_postinc(highByte);
 
         if (!whileNvmBusy()) {
             return false;
@@ -242,17 +236,17 @@ bool TPIClass::writeMemory(uint16_t address, void *buffer, uint16_t count)
 
 bool TPIClass::eraseChip()
 {
-    sout(NVMCMD, CHIP_ERASE);
+    tpi_sout(CHIP_ERASE, NVMCMD);
 
-    sstpr(PROGRAM_FLASH_MEMORY_START);
+    tpi_sstpr(PROGRAM_FLASH_MEMORY_START);
 
-    sst(0xFF, POST_INC);
-    sst(0xFF);
+    tpi_sst_postinc(0xFF);
+    tpi_sst(0xFF);
 
     uint8_t retriesRemaining = 100;
 
     do {
-        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
             break;
         }
     } while (--retriesRemaining);
@@ -262,17 +256,17 @@ bool TPIClass::eraseChip()
 
 bool TPIClass::eraseConfigurationMemory()
 {
-    sout(NVMCMD, SECTION_ERASE);
+    tpi_sout(SECTION_ERASE, NVMCMD);
 
-    sstpr(CONFIGURATION_BITS_START);
+    tpi_sstpr(CONFIGURATION_BITS_START);
 
-    sst(0xFF, POST_INC);
-    sst(0xFF);
+    tpi_sst_postinc(0xFF);
+    tpi_sst(0xFF);
 
     uint8_t retriesRemaining = 100;
 
     do {
-        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
             break;
         }
     } while (--retriesRemaining);
@@ -282,17 +276,17 @@ bool TPIClass::eraseConfigurationMemory()
 
 bool TPIClass::eraseProgramMemory()
 {
-    sout(NVMCMD, SECTION_ERASE);
+    tpi_sout(SECTION_ERASE, NVMCMD);
 
-    sstpr(PROGRAM_FLASH_MEMORY_START);
+    tpi_sstpr(PROGRAM_FLASH_MEMORY_START);
 
-    sst(0xFF, POST_INC);
-    sst(0xFF);
+    tpi_sst_postinc(0xFF);
+    tpi_sst(0xFF);
 
     uint8_t retriesRemaining = 100;
 
     do {
-        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
             break;
         }
     } while (--retriesRemaining);
@@ -338,12 +332,12 @@ void TPIClass::disableTpiInterface()
 
 bool TPIClass::enterNvmProgrammingMode()
 {
-    skey(NVM_PROG_ENABLE);
+    tpi_skey();
 
     uint8_t retriesRemaining = 100;
 
     do {
-        if ((sldcs(TPISR) & _BV(NVMEN)) == _BV(NVMEN)) {
+        if ((tpi_sldcs(TPISR) & _BV(NVMEN)) == _BV(NVMEN)) {
             break;
         }
     } while (--retriesRemaining);
@@ -353,9 +347,9 @@ bool TPIClass::enterNvmProgrammingMode()
 
 void TPIClass::exitNvmProgrammingMode()
 {
-    uint8_t status = sldcs(TPISR);
+    uint8_t status = tpi_sldcs(TPISR);
     status &= ~_BV(NVMEN);
-    sstcs(TPISR, status);
+    tpi_sstcs(status, TPISR);
 }
 
 bool TPIClass::whileNvmBusy()
@@ -363,7 +357,7 @@ bool TPIClass::whileNvmBusy()
     uint8_t retriesRemaining = 100;
 
     do {
-        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
             break;
         }
     } while (--retriesRemaining);
@@ -373,17 +367,17 @@ bool TPIClass::whileNvmBusy()
 
 bool TPIClass::setConfigBit(uint8_t bit, bool enable)
 {
-    sstpr(CONFIGURATION_BITS_START);
+    tpi_sstpr(CONFIGURATION_BITS_START);
 
-    uint8_t config = sld(true);
+    uint8_t config = tpi_sld_postinc();
 
-    sout(NVMCMD, SECTION_ERASE);
-    sst(0xFF);
+    tpi_sout(SECTION_ERASE, NVMCMD);
+    tpi_sst(0xFF);
 
     uint8_t retriesRemaining = 100;
 
     do {
-        if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
             break;
         }
     } while (--retriesRemaining);
@@ -396,85 +390,21 @@ bool TPIClass::setConfigBit(uint8_t bit, bool enable)
             config |= _BV(bit);
         }
 
-        sstpr(CONFIGURATION_BITS_START);
-        sout(NVMCMD, WRITE_WORD);
-        sst(config, true);
-        sst(0xFF);
+        tpi_sstpr(CONFIGURATION_BITS_START);
+        tpi_sout(WRITE_WORD, NVMCMD);
+        tpi_sst_postinc(config);
+        tpi_sst(0xFF);
 
         retriesRemaining = 100;
 
         do {
-            if ((sin(NVMCSR) & _BV(NVMBSY)) == 0) {
+            if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
                 break;
             }
         } while (--retriesRemaining);
     }
 
     return (retriesRemaining > 0);
-}
-
-uint8_t TPIClass::sld(bool postIncrement)
-{
-    if (postIncrement) {
-        write(SLD_POST_INC);
-    } else {
-        write(SLD);
-    }
-
-    return read();
-}
-
-void TPIClass::sst(uint8_t data, bool postIncrement)
-{
-    if (postIncrement) {
-        write(SST_POST_INC);
-    } else {
-        write(SST);
-    }
-
-    return write(data);
-}
-
-void TPIClass::sstpr(uint16_t data)
-{
-    write(SSTPR_LO);
-    write(LOW_BYTE(data));
-    write(SSTPR_HI);
-    write(HIGH_BYTE(data));
-}
-
-uint8_t TPIClass::sin(uint8_t address)
-{
-    write(SIN | IO_ADDR(address));
-    return read();
-}
-
-void TPIClass::sout(uint8_t address, uint8_t data)
-{
-    write(SOUT | IO_ADDR(address));
-    write(data);
-}
-
-uint8_t TPIClass::sldcs(uint8_t address)
-{
-    write(SLDCS | (address & CS_ADDR_MASK));
-    return read();
-}
-
-void TPIClass::sstcs(uint8_t address, uint8_t data)
-{
-    write(SSTCS | (address & CS_ADDR_MASK));
-    write(data);
-}
-
-void TPIClass::skey(uint64_t key)
-{
-    write(SKEY);
-
-    while (key) {
-        write(LOW_BYTE(key));
-        key >>= 8;
-    }
 }
 
 void TPIClass::write(uint8_t value)
