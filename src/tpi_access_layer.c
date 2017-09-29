@@ -38,10 +38,10 @@ extern "C" {
 #endif
 
 
-TPI_WRITE_FN    write = 0;
-TPI_READ_FN     read = 0;
+static TPI_WRITE_FN     write = 0;
+static TPI_READ_FN      read = 0;
 
-static const uint8_t NMV_PROGRAM_ENABLE[] = { 0xFF, 0x88, 0xD8, 0xCD, 0x45, 0xAB, 0x89, 0x12 };
+static const uint8_t    NMV_PROGRAM_ENABLE[] = { 0xFF, 0x88, 0xD8, 0xCD, 0x45, 0xAB, 0x89, 0x12 };
 
 static void tpi_write(uint8_t value)
 {
