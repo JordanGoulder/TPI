@@ -314,6 +314,8 @@ void TPIClass::disableSpiInterface()
 
 void TPIClass::enableTpiInterface()
 {
+    tpi_init(TPIClass::write, TPIClass::read);
+
     digitalWrite(resetPin, LOW);
     delay(T_RST);
 

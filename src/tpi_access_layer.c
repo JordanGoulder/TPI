@@ -37,10 +37,33 @@
 extern "C" {
 #endif
 
-extern void     tpi_write(uint8_t data);
-extern uint8_t  tpi_read(void);
+
+TPI_WRITE_FN    write = 0;
+TPI_READ_FN     read = 0;
 
 static const uint8_t NMV_PROGRAM_ENABLE[] = { 0xFF, 0x88, 0xD8, 0xCD, 0x45, 0xAB, 0x89, 0x12 };
+
+static void tpi_write(uint8_t value)
+{
+    if (write) {
+        (*write)(value);
+    }
+}
+
+static uint8_t tpi_read(void)
+{
+    if (read) {
+        return (*read)();
+    }
+
+    return 0;
+}
+
+void tpi_init(TPI_WRITE_FN write_fn, TPI_READ_FN read_fn)
+{
+    write = write_fn;
+    read  = read_fn;
+}
 
 uint8_t tpi_sld(void)
 {
