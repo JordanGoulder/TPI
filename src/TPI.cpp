@@ -95,15 +95,9 @@ bool TPIClass::setNvmProtectionMode(NvmProtectionMode mode)
     tpi_sst_postinc(lockBits);
     tpi_sst(0xFF);
 
-    uint8_t retriesRemaining = 100;
+    bool success = whileNvmBusy();
 
-    do {
-        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
-            break;
-        }
-    } while (--retriesRemaining);
-
-    return (retriesRemaining > 0);
+    return (success);
 }
 
 
@@ -243,15 +237,9 @@ bool TPIClass::eraseChip()
     tpi_sst_postinc(0xFF);
     tpi_sst(0xFF);
 
-    uint8_t retriesRemaining = 100;
+    bool success = whileNvmBusy();
 
-    do {
-        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
-            break;
-        }
-    } while (--retriesRemaining);
-
-    return (retriesRemaining > 0);
+    return (success);
 }
 
 bool TPIClass::eraseConfigurationMemory()
@@ -263,15 +251,9 @@ bool TPIClass::eraseConfigurationMemory()
     tpi_sst_postinc(0xFF);
     tpi_sst(0xFF);
 
-    uint8_t retriesRemaining = 100;
+    bool success = whileNvmBusy();
 
-    do {
-        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
-            break;
-        }
-    } while (--retriesRemaining);
-
-    return (retriesRemaining > 0);
+    return (success);
 }
 
 bool TPIClass::eraseProgramMemory()
@@ -283,15 +265,9 @@ bool TPIClass::eraseProgramMemory()
     tpi_sst_postinc(0xFF);
     tpi_sst(0xFF);
 
-    uint8_t retriesRemaining = 100;
+    bool success = whileNvmBusy();
 
-    do {
-        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
-            break;
-        }
-    } while (--retriesRemaining);
-
-    return (retriesRemaining > 0);
+    return (success);
 }
 
 void TPIClass::enableSpiInterface()
@@ -376,15 +352,9 @@ bool TPIClass::setConfigBit(uint8_t bit, bool enable)
     tpi_sout(SECTION_ERASE, NVMCMD);
     tpi_sst(0xFF);
 
-    uint8_t retriesRemaining = 100;
+    bool success = whileNvmBusy();
 
-    do {
-        if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
-            break;
-        }
-    } while (--retriesRemaining);
-
-    if (retriesRemaining) {
+    if (success) {
 
         if (enable) {
             config &= ~_BV(bit);
@@ -397,16 +367,11 @@ bool TPIClass::setConfigBit(uint8_t bit, bool enable)
         tpi_sst_postinc(config);
         tpi_sst(0xFF);
 
-        retriesRemaining = 100;
 
-        do {
-            if ((tpi_sin(NVMCSR) & _BV(NVMBSY)) == 0) {
-                break;
-            }
-        } while (--retriesRemaining);
+        success = whileNvmBusy();
     }
 
-    return (retriesRemaining > 0);
+    return (success);
 }
 
 void TPIClass::write(uint8_t value)
